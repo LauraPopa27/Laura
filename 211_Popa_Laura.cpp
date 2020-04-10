@@ -1,357 +1,786 @@
 #include <iostream>
-#include <string.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
-#include <cstdlib>
+#include <stdio.h>
+#include <new>
 #include <bits/stdc++.h>
-
-#define NR_MAX_INDIVIZI 30
-#define en_init 1000
-#define varsta_max 101
-#define en_minus 10
 
 using namespace std;
 
-void menu_output()
+class Complex
 {
-    cout<<endl<<"\n POPA LAURA IOANA 211 - Proiect 16 - Individ: \n";
-    cout<<"\n\t MENIU:";
-    cout<<"\n===========================================\n";
-    cout<<endl;
-    cout<<"1. Optiune actualizare individ in pozitia <x>   : 1 <x>"<<endl;
-    cout<<"2. Optiune test este viu individ in pozitia <x> : 2 <x>"<<endl;
-    cout<<"3. Optiune get tip individ in pozitia <x>       : 3 <x>"<<endl;
-    cout<<"4. Optiune afisare tabel indivizi               : 4 "<<endl;
-    cout<<"0. Optiune iesire din program.                  : 0 "<<endl;
-
-    cout << endl <<"Introduceti optiunea din meniu : ";
-}
-
-class individ
-{
-private:
-    int i;
-    char tip[2];
-    int varsta;
-    double energie;
-    unsigned char viu;
-
-    void hraneste();
-    void inmulteste(individ **);
-    void ataca(individ **);
-    void imbatraneste();
-    void moare();
-
+protected:
+    float real;
+    float imag;
 
 public:
-    individ (); //constructor 1
-    individ (int, char*); //constructor 2
 
-    int getpozitie();
-    char * gettip();
-    int esteviu();
-    void actualizare(individ **);
+    Complex (float, float);  //constructor initializare
+    Complex (const Complex&); //constructor copiere
+    virtual ~Complex ();  //destructor
 
-    friend istream& operator >> (istream  &, individ &);
-    friend ostream& operator << (ostream &, const individ &);
+    void set_real(float);
+    void set_imag(float);
+    float get_real(){return real;};
+    float get_imag(){return imag;};
+    virtual void afisare(ostream &out);
+    virtual void citire(istream &in);
+    friend istream& operator>>(istream &in, Complex& z);
+    friend ostream& operator<<(ostream &out, Complex& z);
+    double modul();
+
+    Complex& operator=(Complex &z);
+    friend Complex& operator+(Complex& z1, Complex& z2);
+    friend Complex& operator*(Complex& z1, Complex& z2);
+    friend Complex& operator/(Complex& z1, Complex& z2);
+    friend Complex& operator-(Complex& z1, Complex& z2);
+    friend Complex& z_amplif(float& , Complex& );
+    friend int is_zero(Complex &);
 };
 
-individ::individ(int pozz, char * tipp)
+Complex::Complex(float real=0.0, float imag=0.0)
 {
-    varsta=0;
-    energie=en_init;
-    viu=1;
-
-    i = pozz;
-    strncpy(tip, tipp, 2);
+    this->real = real;
+    this->imag = imag;
 }
 
-
-individ::individ()
+Complex::Complex(const Complex &z)
 {
-    varsta=0;
-    energie=en_init;
-    viu=1;
-
-    i = -1;
-    strcpy(tip, "-");
+    real = z.real;
+    imag = z.imag;
 }
 
-int individ::getpozitie()
+Complex::~Complex()
 {
-    return i;
+    this->real=0;
+    this->imag=0;
 }
 
-char * individ::gettip()
-{
-    return tip;
+void Complex::set_real(float x){
+    real = x;
 }
-
-int individ::esteviu()
-{
-    return (int)viu;
+void Complex::set_imag(float y){
+    imag=y;
 }
-
-void individ::actualizare(individ ** tbl_indivizi)
+void Complex::citire(istream &in)
 {
-    cout<<endl<<"       ACTUALIZARE:";
-    hraneste();
-    inmulteste(tbl_indivizi);
-    ataca(tbl_indivizi);
-    imbatraneste();
+    cout<<"    Citeste partea reala: ";
+    in>>real;
+    cout<<"         Citeste partea imaginara: ";
+    in>>imag;
 }
-
-void individ::hraneste()
+void Complex::afisare(ostream &out)
 {
-    energie+=(rand()%10)+1;
-    cout << endl << "       Hranire: Hranit individ la pozitia " << i << ". Energie noua = " << energie;
-}
-
-void individ::inmulteste(individ ** tbl_indivizi)
-{
-  int index_crt = i;
-
-  if(index_crt>0)
-  {
-      individ I_stanga = *tbl_indivizi[index_crt-1];
-      if(I_stanga.i < 0)
-      {
-          I_stanga.i = index_crt-1;
-          strncpy(I_stanga.tip, tip, 2);
-          I_stanga.varsta = 0;
-          I_stanga.energie = 2*energie;
-          *tbl_indivizi[index_crt-1] = I_stanga;
-          cout << endl << "       Inmultire: Inmultit individ de la pozitia " << index_crt <<
-                                               ". Fiu nou la pozitia = " << index_crt-1 <<
-                                               ", cu energie = " << I_stanga.energie;
-          return;
-      }
-  }
-
-
-  if(index_crt<NR_MAX_INDIVIZI-1)
-  {
-      individ I_dreapta = *tbl_indivizi[index_crt+1];
-      if(I_dreapta.i < 0)
-      {
-          I_dreapta.i = index_crt+1;
-          strncpy(I_dreapta.tip, tip, 2);
-          I_dreapta.varsta = 0;
-          I_dreapta.energie = 2*energie;
-          *tbl_indivizi[index_crt+1] = I_dreapta;
-          cout << endl << "       Inmultire: Individul de la pozitia " << index_crt <<
-                                               ". Fiu nou la pozitia = " << index_crt+1 <<
-                                               ", cu energie = " << I_dreapta.energie;
-          return;
-      }
-  }
-
-
-  cout << endl << "       Inmultire: Individul nu are pozitii libere alaturate.";
-}
-
-void individ::ataca(individ ** tbl_indivizi)
-{
-  int index_crt = i;
-  int i_atac_reusit = 0;
-
-  if(index_crt>0)
-  {
-      individ I_stanga = *tbl_indivizi[index_crt-1];
-      if(I_stanga.i >= 0)
-      {
-          if(strncmp(I_stanga.tip, tip, 1) && I_stanga.energie < energie)
-          {
-              i_atac_reusit = 1;
-              energie -= I_stanga.energie;
-              I_stanga.moare();
-              I_stanga.energie = 0;
-              *tbl_indivizi[index_crt-1] = I_stanga;
-              cout << endl << "       Atacare: Individul de la pozitia " << index_crt <<
-                                                   " a atacat si a omorat pozitia = " << index_crt-1 <<
-                                                   ", ramanand cu energia = " << energie;
-          }
-      }
-  }
-
-
-  if(index_crt<NR_MAX_INDIVIZI-1)
-  {
-      individ I_dreapta = *tbl_indivizi[index_crt+1];
-      if(I_dreapta.i >= 0)
-      {
-          if(strncmp(I_dreapta.tip, tip, 1) && I_dreapta.energie < energie)
-          {
-              i_atac_reusit = 1;
-              energie -= I_dreapta.energie;
-              I_dreapta.moare();
-              I_dreapta.energie = 0;
-              *tbl_indivizi[index_crt+1] = I_dreapta;
-              cout << endl << "       Atacare: Individul de la pozitia " << index_crt <<
-                                                   " a atacat si a omorat pozitia = " << index_crt+1 <<
-                                                   ", ramanand cu energia = " << energie;
-          }
-      }
-  }
-
-  if(!i_atac_reusit)
-      cout << endl << "       Atacare: Individul nu a putut ataca pozitiile alaturate.";
-}
-
-void individ::imbatraneste()
-{
-    varsta += 1;
-    energie -= en_minus;
-    energie = max(energie, 0.0);
-
-    if(varsta >= varsta_max || energie <= 0)
-    {
-        moare();
+    if (imag==0) {
+        out<<real;
     }
-
-    if(esteviu())
-        cout << endl << "       Imbatranire: Individul de la pozitia " << i <<
-                                                   " a imbatranit si a ajuns la varsta = " << varsta <<
-                                                   ", ramanand cu energia = " << energie;
-    else
-        cout << endl << "       Imbatranire: Individul de la pozitia " << i <<
-                                                   " a ajuns la varsta = " << varsta <<
-                                                   " si energia = " << energie << " si a murit.";
+    else{
+        if (imag < 0){
+            out<<real<<imag<<"*i";
+        }
+        else{
+            out<<real<<"+"<<imag<<"*i";
+        }
+    }
 }
 
-void individ::moare()
+istream& operator >> (istream  &in, Complex &z)
 {
-    viu = 0;
-}
-
-istream& operator >> (istream  &in, individ &I)
-{
-     in>> I.i;
-     in>> I.tip;
+     z.citire(in);
      return in;
 }
 
-ostream& operator << (ostream &out, const individ &I)
+ostream& operator << (ostream &out, Complex &z)
 {
-     out<< endl <<  "Poz = " << I.i << ". Tip = " << I.tip << ". Varsta = " << I.varsta <<
-                        ". Energie = " << I.energie << ". Viu = " << (int)I.viu << ".";
+     z.afisare(out);
      return out;
 }
 
-void citeste_indivizi(individ * tbl_indivizi[NR_MAX_INDIVIZI], int &nr_indivizi_init)
+double Complex::modul()
 {
-    cout << endl << " Citire initiala indivizi : " << endl;
-    cout << endl << "     Numar initial indivizi (maxim 30) = ";
-    cin >> nr_indivizi_init;
-
-    for (int i=0; i<nr_indivizi_init; i++)
-    {
-        individ I;
-
-        cout << endl << "     Citire individ " << i+1 << "/" << nr_indivizi_init
-             << " : <pozitie (max. " << NR_MAX_INDIVIZI-1 << ")> <tip ('+' sau '0')> : ";
-        cin >> I;
-
-        *tbl_indivizi[I.getpozitie()] = I;
-        cout << endl << "     Creat individ la pozitia " << I.getpozitie() << ". Tip = " << I.gettip() << endl << endl;
-    }
+    return sqrt(real*real+imag*imag);
 }
 
-void meniu(individ * tbl_indivizi[NR_MAX_INDIVIZI])
+Complex& Complex::operator=(Complex &z)
 {
-    char c_opt[2];
-    int i_opt = -1;
+    real=z.real;
+    imag=z.imag;
+    return *this;
+}
 
-    while(1)
+inline Complex& operator+(Complex &z1, Complex& z2){
+   Complex *z= new Complex;
+    z->real = z1.real + z2.real;
+    z->imag = z1.imag + z2.imag;
+    return *z;
+}
+inline Complex& operator*(Complex &z1, Complex& z2){
+    Complex *z= new Complex;
+    z->real = z1.real * z2.real - z1.imag * z2.imag;
+    z->imag = z1.real * z2.imag + z2.real * z1.imag;
+    return *z;
+}
+Complex& operator/(Complex &z1, Complex &z2)
+{
+    Complex *z= new Complex;
+    if(is_zero(z1)!=0)
+    {
+        if(is_zero(z2)!=0)
+        {
+            z->real = (z1.real*z2.real + z1.imag*z2.imag) / (z2.real*z2.real + z2.imag*z2.imag);
+            z->imag = (z2.real*z1.imag - z1.real*z2.imag) / (z2.real*z2.real + z2.imag*z2.imag);
+        }
+        else
+        {
+            cout<<"Eroare: impartire la zero. \n";
+            exit(EXIT_FAILURE);
+        }
+    }
+    return *z;
+}
+
+Complex& operator-(Complex &z1, Complex& z2)
+{
+   Complex *z= new Complex;
+    z->real = z1.real - z2.real;
+    z->imag = z1.imag - z2.imag;
+    return *z;
+}
+
+Complex &z_amplif(float& a, Complex& zin)
+{
+    Complex *zout= new Complex;
+    zout->real = a * zin.real;
+    zout->imag = a * zin.imag;
+
+    return *zout;
+}
+
+int is_zero(Complex &z)
+{
+    if(z.real==0 && z.imag==0)
+        return 1;
+
+    return 0;
+}
+
+////////////////////////MATRICE////////////////////////////////
+class Matrice
+{
+protected:
+    Complex **v;
+    static int n;
+
+public:
+    Matrice(int, int);
+    Matrice(const Matrice& );
+    virtual ~Matrice();
+    virtual void citire(istream &in);
+    virtual void afisare(ostream &out);
+
+    friend istream& operator>>(istream &in, Matrice&);
+    friend ostream& operator<<(ostream &out, Matrice&);
+    Complex ** get_pointer()
+    {
+        return v;
+    }
+    static void numarObiecte()
+    {
+        cout<<n;
+    }
+
+};
+
+int Matrice::n;
+
+Matrice::Matrice(int lin=1, int col=1)
+{
+    n++;
+    v = new Complex*[lin];
+    for(int i=0; i<lin; i++)
+        v[i] = new Complex[col];
+}
+
+Matrice::Matrice(const Matrice &mat)
+{
+    Matrice::v = mat.v;
+}
+
+Matrice::~Matrice()
+{
+    delete [] v;
+}
+
+void Matrice::citire(istream &in)
+{
+    cout << endl << endl << " * In 'citire' pt 'Matrice': do nothing. ";
+}
+
+void Matrice::afisare(ostream &out)
+{
+    cout << endl << endl << " * In 'afisare' pt 'Matrice': do nothing. ";
+}
+
+
+istream& operator>>(istream &in, Matrice &mat)
+{
+    mat.citire(in);
+
+    return in;
+}
+
+ostream& operator<<(ostream &out, Matrice &mat)
+{
+     mat.afisare(out);
+
+     return out;
+}
+
+
+//////////////////////////MATRICE OARECARE///////////////////////////////////////
+class Matrice_oarecare:public Matrice
+{
+private:
+    int lin;
+    int col;
+public:
+    Matrice_oarecare(int, int); //constructor
+    Matrice_oarecare(const Matrice_oarecare& ); //constructor de copiere
+    ~Matrice_oarecare(); //destructor
+    void set_col(int);
+    void set_lin(int);
+    int get_col() {return col;};
+    int get_lin() {return lin;};
+    void citire(istream &in, Matrice_oarecare&);
+    void afisare(ostream &out, Matrice_oarecare&);
+
+    friend istream& operator>>(istream&, Matrice_oarecare&);
+    friend ostream& operator<<(ostream&, Matrice_oarecare&);
+    Matrice_oarecare& operator=(const Matrice_oarecare &);
+    void realocare_matrice(int, int);
+    void set_lin_col(int, int);
+    int is_square();
+    int is_triangular();
+    int is_upper();
+    int is_lower();
+    void is_diagonal();
+
+};
+
+void Matrice_oarecare::realocare_matrice(int newlin, int newcol)
+{
+    for(int i=0; i<lin; i++)
+        delete [] Matrice::v[i];
+    delete Matrice::v;
+
+    lin = newlin;
+    col = newcol;
+
+    Matrice::v = new Complex *[lin];
+    for (int i = 0; i < lin; i++)
+        Matrice::v[i] = new Complex[col];
+}
+
+
+Matrice_oarecare::Matrice_oarecare(int nlin=1 , int ncol=1 ): Matrice(nlin, ncol)
+{
+    lin = nlin;
+    col = ncol;
+    v = new Complex *[lin];
+    for (int i = 0; i < lin; i++)
+        v[i] = new Complex[col];
+}
+
+Matrice_oarecare::~Matrice_oarecare()
+{
+    for (int i = 0; i < lin; i++)
+    {
+        delete v[i];
+    }
+    delete [] Matrice::v;
+    lin = col = 0;
+}
+
+Matrice_oarecare::Matrice_oarecare(const Matrice_oarecare &mat)
+{
+    lin=mat.lin;
+    col=mat.col;
+    Matrice::v = mat.v;
+}
+
+void Matrice_oarecare::set_lin(int nlin)
+{
+    lin=nlin;
+}
+
+void Matrice_oarecare::set_col(int ncol)
+{
+    col=ncol;
+}
+
+void Matrice_oarecare::citire(istream &in, Matrice_oarecare& mat)
+{
+    int newlin, newcol;
+    Matrice::citire(in);
+
+   cout<<endl<<"--CITIRE MATRICE OARECARE--"<<endl;
+   cout<<"Introduceti nr de linii : "<<endl;
+   in >> newlin;
+   cout<<"Introduceti nr de coloane : "<<endl;
+   in >> newcol;
+
+   realocare_matrice(newlin, newcol);
+
+   cout<<"Introduceti elementele matricei: "<<endl;
+   for ( int i = 0; i < newlin; i++ )
+        for ( int j = 0; j < newcol; j++ )
+          {
+              cout<<"matrice_oarecare["<<i<<"]["<<j<<"]=";
+              in >> mat.v[i][j];
+          }
+}
+
+void Matrice_oarecare::afisare(ostream &out, Matrice_oarecare& mat)
+{
+    Matrice::afisare(out);
+
+    out<<endl<<"Afisarea matricei oarecare: "<<endl;
+    for(int i=0; i<lin; i++)
+     {
+        for(int j=0; j<col; j++)
+            out << mat.v[i][j] << ' ';
+        out << endl;
+     }
+}
+
+istream& operator >> (istream  &in, Matrice_oarecare & mat)
+{
+    mat.citire(in,mat);
+    return in;
+}
+
+ostream& operator<<(ostream& out, Matrice_oarecare &mat)
+{
+    mat.afisare(out,mat);
+    return out;
+}
+
+Matrice_oarecare& Matrice_oarecare::operator=(const Matrice_oarecare &mat)
+{
+  realocare_matrice(mat.lin, mat.col);
+
+  for(int i=0; i<lin; i++)
+        for(int j=0; j<col; j++)
+            Matrice::v[i][j] = mat.v[i][j];
+
+    return *this;
+}
+
+void Matrice_oarecare::set_lin_col(int nlin, int ncol)
+{
+    lin = nlin;
+    col = ncol;
+}
+
+int Matrice_oarecare::is_square()
+{
+    return lin==col ? 1:0;
+}
+
+int Matrice_oarecare::is_triangular()
+{
+        if(is_upper())
+            return 1;
+        if(is_lower())
+            return -1;
+        return 0;
+}
+
+int Matrice_oarecare::is_upper()
+{
+    for(int i=1; i<lin; i++)
+    {
+        for(int j=0; j<i; j++)
+        {
+            if(!is_zero(Matrice::v[i][j]))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int Matrice_oarecare::is_lower()
+{
+    for(int i=0; i<lin-1; i++)
+    {
+        for(int j=i+1; j<col; j++)
+        {
+            if(!is_zero(Matrice::v[i][j]))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+void Matrice_oarecare::is_diagonal()
+{
+    if(is_upper() && is_lower())
+        cout<<"\nMatricea oarecare este diagonala.";
+    else
+        cout<<"\nMatricea oarecare NU este diagonala.";
+}
+
+
+
+////////////////////MATRICE PATRATICA////////////////////////////
+class Matrice_patratica:public Matrice
+{
+private:
+    int dim;
+public:
+    Matrice_patratica(int); //constructor
+    Matrice_patratica(const Matrice_patratica& ); //constructor de copiere
+    ~Matrice_patratica(); //destructor
+    void set_dim(int);
+    int get_dim() {return dim;};
+
+    void citire(istream &in, Matrice_patratica&);
+    void afisare(ostream &out, Matrice_patratica&);
+
+    friend istream& operator>>(istream&, Matrice_patratica&);
+    friend ostream& operator<<(ostream&, Matrice_patratica&);
+    Matrice_patratica& operator=(const Matrice_patratica &mat);
+    void realocare_matrice(int);
+
+    int is_triangular();
+    int is_upper();
+    int is_lower();
+    void is_diagonal();
+
+    Complex &determinant(int n, Complex **mat)
+{
+        Complex *z= new Complex(0,0);
+        Matrice_patratica Submatrice(n);
+        Complex ** submat = Submatrice.v;
+
+        int subi, subj;
+
+        if(n==2)
+        {
+            return ((mat[0][0]*mat[1][1]) - (mat[1][0]*mat[0][1]));
+        }
+
+        for(int c=0; c<n; c++)
+        {
+            subi = 0;
+            for(int i=1; i<n; i++)
+            {
+                subj = 0;
+                for(int j=0; j<n; j++)
+                {
+                    if (j == c)
+                        continue;
+
+                    submat[subi][subj] = mat[i][j];
+                    subj++;
+                }
+                subi++;
+            }
+            Complex zz(mat[0][c]);
+            float sign = pow(-1,c);
+            zz = z_amplif(sign, zz);
+            *z = *z + (zz * determinant(n-1, submat));
+        }
+        return *z;
+}
+
+};
+
+void Matrice_patratica::realocare_matrice(int newdim)
+{
+    for(int i=0; i<dim; i++)
+        delete [] Matrice::v[i];
+    delete Matrice::v;
+
+    dim = newdim;
+
+    Matrice::v = new Complex *[dim];
+    for (int i = 0; i < dim; i++)
+        Matrice::v[i] = new Complex[dim];
+}
+
+Matrice_patratica::Matrice_patratica(int n = 1): Matrice(n, n)
+{
+    dim = n;
+    v = new Complex *[dim];
+    for (int i = 0; i < dim; i++)
+        v[i] = new Complex[dim];
+}
+
+Matrice_patratica::Matrice_patratica(const Matrice_patratica &mat)
+{
+    dim=mat.dim;
+    Matrice::v = mat.v;
+}
+
+Matrice_patratica::~Matrice_patratica()
+{
+    for (int i = 0; i < dim; i++)
+    {
+        delete v[i];
+    }
+    delete v;
+    dim = 0;
+}
+
+void Matrice_patratica::set_dim(int newdim)
+{
+    dim=newdim;
+}
+
+void Matrice_patratica::citire(istream &in, Matrice_patratica& mat)
+{
+    int newdim;
+    Matrice::citire(in);
+
+    cout<<endl<<"--CITIRE MATRICE PATRATICA--"<<endl;
+    cout<<"Introduceti dimensiunea matricei patratice: "<<endl;
+    in >> newdim;
+    cout<<"Introduceti elementele matricei: "<<endl;
+
+    realocare_matrice(newdim);
+
+    for ( int i = 0; i < newdim; i++ )
+      for ( int j = 0; j < newdim; j++ )
+        {
+            cout<<"matrice_patratica["<<i<<"]["<<j<<"]=";
+            in >> Matrice::v[i][j];
+        }
+}
+
+void Matrice_patratica::afisare(ostream &out, Matrice_patratica& mat)
+{
+    Matrice::afisare(out);
+
+    out<<endl<<"Afisarea matricei patratice: "<<endl;
+    for(int i=0; i<dim; i++)
+    {
+        for(int j=0; j<dim; j++)
+            out << Matrice::v[i][j] << '\t';
+        out << endl;
+    }
+
+    out<<"\nDeterminantul matricei este: ";
+    out<<determinant(dim, Matrice::v)<<endl;
+}
+
+istream& operator>>(istream& in,Matrice_patratica &mat)
+{
+    mat.citire(in,mat);
+    return in;
+}
+
+ostream& operator<<(ostream& out, Matrice_patratica &mat)
+{
+    mat.afisare(out,mat);
+    return out;
+}
+
+Matrice_patratica& Matrice_patratica::operator=(const Matrice_patratica &mat)
+{
+    realocare_matrice(mat.dim);
+
+    for(int i=0; i<dim; i++)
+       for(int j=0; j<dim; j++)
+            Matrice::v[i][j] = mat.v[i][j];
+
+    return *this;
+}
+
+
+int Matrice_patratica::is_triangular()
+{
+   if(is_upper())
+            return 1;
+        if(is_lower())
+            return -1;
+        return 0;
+}
+
+int Matrice_patratica::is_upper()
+{
+    for(int i=1; i<dim; i++)
+    {
+        for(int j=0; j<i; j++)
+        {
+            if(!is_zero(Matrice::v[i][j]))
+            {
+                return 0;
+            }
+        }
+        }
+    return 1;
+}
+
+int Matrice_patratica::is_lower()
+{
+    for(int i=0; i<dim-1; i++)
+    {
+        for(int j=i+1; j<dim; j++)
+        {
+            if(!is_zero(Matrice::v[i][j]))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+void Matrice_patratica::is_diagonal()
+{
+    if(is_upper() && is_lower())
+        cout<<"\nMatricea patratica este diagonala.";
+    else
+        cout<<"\nMatricea patratica NU este diagonala.";
+}
+
+///////////MENIU////////
+
+void menu_output()
+{
+    printf("\n Popa Laura Ioana 211 - Proiect 2->TEMA 10 - Matrice complexa: \n");
+    printf("\n\t MENIU:");
+    printf("\n===========================================\n");
+    printf("\n");
+    printf("1: Citire matrice oarecare "); printf("\n");
+    printf("2: Citire matrice patratica "); printf("\n");
+    printf("3: Verificare daca matricea patratica este diagonala "); printf("\n");
+    printf("4: Verificare daca matricea oarecare este diagonala "); printf("\n");
+    printf("5: Afisare matrice oarecare "); printf("\n");
+    printf("6: Afisare matrice patratica "); printf("\n");
+    printf("q: Iesire."); printf("\n");
+}
+void menu()
+{
+    Matrice_oarecare MO;
+    Matrice_patratica MP;
+    char option[2];
+
+    do
     {
         menu_output();
 
-        cin >> c_opt;
+        printf("\nIntroduceti numarul actiunii: ");
+        cin>>option;
 
-        if(!strncmp(c_opt,"0",1))
+        if (!strncmp(option,"1",1))
+        {
+           cin>>MO;
+        }
+        if (!strncmp(option,"2",1))
+        {
+            cin>>MP;
+        }
+        if (!strncmp(option,"3",1))
+        {
+            MP.is_diagonal();
+        }
+        if (!strncmp(option,"4",1))
+        {
+            MO.is_diagonal();
+        }
+        if (!strncmp(option,"5",1))
+        {
+            cout<<MO;
+        }
+        if (!strncmp(option,"6",1))
+        {
+            cout<<MP;
+        }
+
+        if (!strncmp(option,"q",1))
         {
             cout << endl << " --QUIT-- " << endl << endl;
             return;
         }
-        else if(!strncmp(c_opt,"4",1))
+         if(strncmp(option,"1",1) && strncmp(option,"2",1) && strncmp(option,"3",1) && strncmp(option,"4",1)
+            && strncmp(option,"5",1) && strncmp(option,"6",1) && strncmp(option,"q",1))
         {
-            cout << endl << endl << endl << endl <<        "            -- Tabel indivizi --           " << endl;
-            for(int i = 0; i<NR_MAX_INDIVIZI; i++)
-           {
-               individ I = *tbl_indivizi[i];
-               if(I.getpozitie() >= 0)
-               cout << I;
-           }
-           continue;
-
+            printf("\nSelectie invalida\n");
         }
-
-        cin >> i_opt;
-
-        //verificari
-        if(strncmp(c_opt,"1",1) && strncmp(c_opt,"2",1) && strncmp(c_opt,"3",1) && strncmp(c_opt,"4",1))
-        {
-            cout << endl << "Eroare citire optiune: " << c_opt << endl;
-            continue;
-        }
-        if(i_opt < 0 || i_opt >= NR_MAX_INDIVIZI)
-        {
-            cout << endl << "Eroare citire pozitie individ: " << i_opt << endl;
-            continue;
-        }
-
-        individ I = *tbl_indivizi[i_opt];
-
-        if(!strncmp(c_opt,"1",1))
-        {
-            if(I.esteviu())
-            {
-                 I.actualizare(tbl_indivizi);
-
-                *tbl_indivizi[I.getpozitie()] = I;
-            }
-            else
-            {
-                cout << endl << " Eroare: Individul din pozitia " << i_opt << " nu mai este viu." << endl;
-                continue;
-            }
-        }
-        else if(!strncmp(c_opt,"2",1))
-        {
-            if(I.esteviu())
-                cout << endl << "       Individul de la pozitia " << I.getpozitie() << " ESTE viu.";
-            else
-                cout << endl << "       Individul de la pozitia " << I.getpozitie() << " NU este viu.";
-        }
-        else if(!strncmp(c_opt,"3",1))
-        {
-            if(I.esteviu())
-                cout << endl << "       Individul de la pozitia  " << I.getpozitie() <<
-                                " are tipul = '" << I.gettip() << "'.";
-            else
-                cout << endl << "       Individul de la pozitia  " << I.getpozitie() <<
-                                " a avut tipul = '" << I.gettip() << "'.";
-        }
-
+        printf("\n");
+        system("pause");
+        system("cls");
     }
-
-     system("pause");
-     system("cls");
+    while(option!=0);
 }
 
+
+////////////////////////////////////////
 int main()
 {
-    static int nr_indivizi_init;
-    static individ * tbl_indivizi[NR_MAX_INDIVIZI];
+    //menu();
 
-    for(int i=0; i<NR_MAX_INDIVIZI; i++)
+    Matrice::numarObiecte();
+    cout<<"\n";
+
+    //CITIREA SI AFISAREA OBIECTELOR
+    int nr_ob;
+    cout<<"\n Nr obiecte de citit: ";
+    cin>>nr_ob;
+    Matrice_oarecare A(10,10);
+    Matrice_patratica B(10);
+
+    for(int i=0;i<nr_ob;i++)
     {
-        tbl_indivizi[i] = new individ();
+        cin>>A;
+        cin>>B;
+
+        cout<<A;
+        cout<<B;
+
+        A.is_diagonal();
+        B.is_diagonal();
     }
 
-    citeste_indivizi(tbl_indivizi, nr_indivizi_init);
+    A.~Matrice_oarecare();
+    B.~Matrice_patratica();
 
-    meniu(tbl_indivizi);
+
+   //DEMONSTRATIE OPERATOR SUPRAINCARCAT "="
+    Matrice_patratica MP, MP1;
+    cin>>MP;
+    cin>>MP1;
+    MP=MP1;
+    cout<<MP;
+    cout<<MP1;
+
+
+    //UPCAST MATRICE OARECARE
+    Matrice *M = new Matrice_oarecare();
+    cout << endl<<" *** Demonstratie upcast matrice oarecare ***";
+    cin>> *M;
+    cout<< *M;
+    //END UPCAST
+
+    //DOWNCAST MATRICE OARECARE
+    int nlin=2, ncol=2;
+    Matrice_oarecare *MO = (Matrice_oarecare*) new Matrice(nlin,ncol);
+    cout <<endl<<endl<<" *** Demonstratie downcast matrice oarecare ***";
+    MO->set_lin_col(nlin, ncol);
+    cin>> *MO;
+    cout<< *MO;
+    //END DOWNCAST
+
+
+    cout<<"\n";
+    Matrice::numarObiecte();
+
 
     return 0;
 }
